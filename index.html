@@ -1,0 +1,2303 @@
+        <!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Airiofficial 饰品店收银系统</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+            
+            <!-- Tailwind 配置 -->
+            <script>
+                tailwind.config = {
+                    theme: {
+                        extend: {
+                            colors: {
+                                primary: '#667eea',
+                                secondary: '#7795f8',
+                                success: '#2ecc71',
+                                danger: '#e74c3c',
+                                warning: '#f39c12',
+                                info: '#3498db',
+                                light: '#f8f9fa',
+                                dark: '#343a40',
+                                muted: '#6c757d',
+                                canceled: '#95a5a6',
+                                pending: '#f39c12',
+                                diamond: '#b9f2ff',
+                                gold: '#f1c40f',
+                                silver: '#bdc3c7'
+                            },
+                            fontFamily: {
+                                sans: ['Inter', 'system-ui', 'sans-serif'],
+                            },
+                        }
+                    }
+                }
+            </script>
+            
+            <link rel="stylesheet" href="css/style.css">
+        </head>
+        <body class="bg-gray-100 font-sans">
+            <!-- 登录页面 -->
+            <div id="loginPage" class="min-h-screen flex items-center justify-center bg-gray-100">
+                <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+                    <div class="text-center mb-6">
+                        <h1 class="text-2xl font-bold text-primary">Airiofficial 饰品店</h1>
+                        <p class="text-gray-600 mt-2">收银管理系统</p>
+                    </div>
+                    
+                    <form id="loginForm">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2" for="username">用户名</label>
+                            <input type="text" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-gray-700 mb-2" for="password">密码</label>
+                            <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90 transition-colors">登录</button>
+                    </form>
+                    
+                    <div id="loginError" class="mt-4 text-center text-danger hidden">
+                        用户名或密码错误
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主系统界面 -->
+            <div id="mainSystem" class="hidden flex h-screen">
+                <!-- 侧边栏 -->
+<div class="bg-gray-900 text-white w-16 flex flex-col">
+    <!-- 仪表盘 -->
+    <div class="sidebar-icon group" onclick="switchView('dashboardView')" data-menu="dashboardMenu">
+        <i class="fa fa-dashboard text-xl"></i>
+        <span class="sidebar-tooltip group-hover:scale-100">
+            仪表盘
+        </span>
+    </div>
+    
+    <!-- 收银台 -->
+    <div class="sidebar-icon group" onclick="switchView('posView')" data-menu="posMenu">
+        <i class="fa fa-shopping-cart text-xl"></i>
+        <span class="sidebar-tooltip group-hover:scale-100">
+            收银台
+        </span>
+    </div>
+    
+    <!-- 商品管理 -->
+    <div class="sidebar-icon group" onclick="switchView('productsView')" data-menu="productsMenu">
+        <i class="fa fa-diamond text-xl"></i>
+        <span class="sidebar-tooltip group-hover:scale-100">
+            商品管理
+        </span>
+    </div>
+    
+    <!-- 会员管理 -->
+    <div class="sidebar-icon group" onclick="switchView('membersView')" data-menu="membersMenu">
+        <i class="fa fa-users text-xl"></i>
+        <span class="sidebar-tooltip group-hover:scale-100">
+            会员管理
+        </span>
+    </div>
+    
+    <!-- 订单管理 -->
+    <div class="sidebar-icon group" onclick="switchView('ordersView')" data-menu="ordersMenu">
+        <i class="fa fa-file-text text-xl"></i>
+        <span class="sidebar-tooltip group-hover:scale-100">
+            订单管理
+        </span>
+    </div>
+    
+    <!-- 数据报表 -->
+    <div class="sidebar-icon group" onclick="switchView('reportView')" data-menu="reportMenu">
+        <i class="fa fa-bar-chart text-xl"></i>
+        <span class="sidebar-tooltip group-hover:scale-100">
+            数据报表
+        </span>
+    </div>
+    
+    <!-- 员工管理 -->
+    <div class="sidebar-icon group" onclick="switchView('staffView')" data-menu="staffMenu">
+        <i class="fa fa-user-circle text-xl"></i>
+        <span class="sidebar-tooltip group-hover:scale-100">
+            员工管理
+        </span>
+    </div>
+    
+    <!-- 系统设置 -->
+    <div class="sidebar-icon group" onclick="switchView('settingsView')" data-menu="settingsMenu">
+        <i class="fa fa-cog text-xl"></i>
+        <span class="sidebar-tooltip group-hover:scale-100">
+            系统设置
+        </span>
+    </div>
+    
+    <div class="sidebar-hr mt-auto"></div>
+    
+    <!-- 退出登录 -->
+    <div class="sidebar-icon group" onclick="logout()" data-menu="logoutMenu">
+        <i class="fa fa-sign-out text-xl"></i>
+        <span class="sidebar-tooltip group-hover:scale-100">
+            退出登录
+        </span>
+    </div>
+</div>
+
+                <!-- 主内容区 -->
+                <div class="flex-1 flex flex-col overflow-hidden">
+                <!-- 顶部导航栏 - 替代方案 -->
+        <header class="bg-white shadow-sm px-6 py-3">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 id="pageTitle" class="text-xl font-bold text-gray-800">收银台</h1>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <div id="currentUser" class="font-medium text-gray-700"></div>
+                        <div id="currentRole" class="text-sm text-gray-500"></div>
+                    </div>
+                    
+                    <!-- 头像部分 -->
+                    <div class="relative">
+                        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white cursor-pointer hover:bg-primary/90 transition-colors" onclick="toggleUserMenu()">
+                            <i class="fa fa-user"></i>
+                        </div>
+                        
+                        <!-- 用户菜单下拉框 -->
+                        <div id="userMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 hidden z-50">
+                            <div class="px-4 py-2 border-b border-gray-100">
+                                <div class="font-medium text-gray-800" id="menuUserName"></div>
+                                <div class="text-sm text-gray-500" id="menuUserRole"></div>
+                            </div>
+                            <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors" onclick="openEditProfileModal()">
+                                <i class="fa fa-edit mr-2"></i>修改个人信息
+                            </button>
+                            <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors" onclick="openChangePasswordModal()">
+                                <i class="fa fa-lock mr-2"></i>修改密码
+                            </button>
+                            <div class="border-t border-gray-100 mt-1"></div>
+                            <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors" onclick="logout()">
+                                <i class="fa fa-sign-out mr-2"></i>退出登录
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+                    <!-- 内容区域 -->
+                    <main class="flex-1 overflow-y-auto p-6">
+                    <!-- 仪表盘视图 -->
+        <div id="dashboardView" class="view-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                <!-- 销售统计卡片 -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-primary/10 text-primary mr-4">
+                            <i class="fa fa-shopping-cart text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">今日销售额</p>
+                            <p id="todaySales" class="text-2xl font-bold text-gray-900">0 Ks</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-success/10 text-success mr-4">
+                            <i class="fa fa-file-text text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">今日订单数</p>
+                            <p id="todayOrders" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-info/10 text-info mr-4">
+                            <i class="fa fa-users text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">会员总数</p>
+                            <p id="totalMembers" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-warning/10 text-warning mr-4">
+                            <i class="fa fa-cube text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">低库存商品</p>
+                            <p id="lowStockProducts" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- 最近订单 -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">最近订单</h2>
+                    <div id="recentOrders" class="space-y-3">
+                        <!-- 最近订单会通过JavaScript动态加载 -->
+                    </div>
+                </div>
+                
+                <!-- 热销商品 -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">热销商品</h2>
+                    <div id="hotProducts" class="space-y-3">
+                        <!-- 热销商品会通过JavaScript动态加载 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 活动管理模块 - 现在正确地在仪表盘视图内部 -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">活动管理</h2>
+                    <button class="btn btn-primary" onclick="openModal('addActivityModal')">
+                        <i class="fa fa-gift"></i> 创建活动
+                    </button>
+                </div>
+                
+                <!-- 活动统计 -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-blue-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="activeActivities">0</div>
+                        <div class="text-sm text-blue-800">进行中活动</div>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-green-600" id="totalParticipants">0</div>
+                        <div class="text-sm text-green-800">总参与人数</div>
+                    </div>
+                    <div class="bg-yellow-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-yellow-600" id="todayParticipants">0</div>
+                        <div class="text-sm text-yellow-800">今日参与</div>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-purple-600" id="completionRate">0%</div>
+                        <div class="text-sm text-purple-800">活动完成率</div>
+                    </div>
+                </div>
+                
+                <!-- 活动列表 -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" id="activitiesTable">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">活动编码</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">活动名称</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">参与人数</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- 活动数据会通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- 这里结束仪表盘视图 -->
+
+
+
+                        <!-- 收银台视图 -->
+                        <div id="posView" class="view-content">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <!-- 左侧：商品搜索和列表 -->
+                                <div class="lg:col-span-2">
+                                    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+                                        <div class="flex items-center mb-4">
+                                            <input type="text" id="productSearch" placeholder="搜索商品名称、条码或SKU..." 
+                                                class="flex-1 px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                                oninput="searchProducts()">
+                                            <button class="bg-primary text-white px-4 py-2 rounded-r-md hover:bg-primary/90 transition-colors" onclick="searchProducts()">
+                                                <i class="fa fa-search"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="productsGrid">
+                                            <!-- 商品会通过JavaScript动态加载 -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 右侧：购物车和结账 -->
+                                <div>
+                                    <div class="bg-white rounded-lg shadow-sm p-4 mb-6" style="min-width: 320px;">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h3 class="font-bold text-lg">购物车 <span id="itemCount" class="text-primary">(0)</span></h3>
+                                            <button class="text-sm text-gray-500 hover:text-danger transition-colors" onclick="clearCart()">
+                                                <i class="fa fa-trash"></i> 清空
+                                            </button>
+                                        </div>
+                                        
+                                        <div id="cartItems" class="max-h-72 overflow-y-auto mb-4">
+                                            <div style="text-align: center; color: #666; padding: 20px;">购物车为空</div>
+                                        </div>
+                                        
+                                        <!-- 折扣设置 -->
+                                        <div class="discount-section">
+                                            <!-- 会员折扣 -->
+                                            <div class="discount-row">
+                                                <div class="discount-label">会员手机:</div>
+                                                <input type="text" id="memberPhone" placeholder="输入手机号" 
+                                                    class="discount-input">
+                                                <button class="discount-btn" onclick="applyMemberDiscount()">查询</button>
+                                            </div>
+                                            <div class="discount-row">
+                                                <div class="discount-label">会员折扣:</div>
+                                                <label class="switch">
+                                                    <input type="checkbox" id="useMemberDiscount" onchange="toggleMemberDiscount()">
+                                                    <span class="slider"></span>
+                                                </label>
+                                                <div style="flex: 1;"></div>
+                                            </div>
+                                            <div id="memberInfo" class="member-info hidden">
+                                                <!-- 会员信息会动态显示 -->
+                                            </div>
+                                            
+                                            <!-- 百分比折扣 -->
+                                            <div class="discount-row">
+                                                <div class="discount-label">百分比折扣:</div>
+                                                <input type="number" id="percentageDiscount" placeholder="0-100" 
+                                                    class="discount-input" min="0" max="100" step="1">
+                                                <div class="discount-unit">%</div>
+                                                <button class="discount-btn" onclick="applyPercentageDiscount()">应用</button>
+                                            </div>
+                                            
+                                            <!-- 固定金额折扣 -->
+                                            <div class="discount-row">
+                                                <div class="discount-label">金额折扣:</div>
+                                                <input type="number" id="fixedDiscount" placeholder="金额" 
+                                                    class="discount-input" min="0" step="100">
+                                                <div class="discount-unit">Ks</div>
+                                                <button class="discount-btn" onclick="applyFixedDiscount()">应用</button>
+                                            </div>
+                                        </div>
+
+                                        <!-- 金额信息 -->
+                                        <div class="space-y-2 mb-4">
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">小计:</span>
+                                                <span id="subtotal" class="font-medium">0 Ks</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">会员折扣:</span>
+                                                <span id="memberDiscount" class="font-medium text-success">-0 Ks</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">百分比折扣:</span>
+                                                <span id="percentageDiscountDisplay" class="font-medium text-success">-0 Ks</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">固定金额折扣:</span>
+                                                <span id="fixedDiscountDisplay" class="font-medium text-success">-0 Ks</span>
+                                            </div>
+                                            <div class="flex justify-between border-t border-gray-200 pt-2">
+                                                <span class="text-gray-600">总优惠:</span>
+                                                <span id="totalDiscount" class="font-medium text-success">-0 Ks</span>
+                                            </div>
+                                            <div class="flex justify-between border-t border-gray-200 pt-2">
+                                                <span class="font-bold">总计:</span>
+                                                <span id="totalAmount" class="font-bold text-primary text-lg">0 Ks</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 支付方式 -->
+                                        <div class="mb-4">
+                                            <h4 class="font-medium mb-2">支付方式</h4>
+                                            <div class="grid grid-cols-3 gap-2">
+                                                <button class="payment-btn btn btn-secondary" onclick="selectPayment('cash')">
+                                                    <i class="fa fa-money"></i> 现金
+                                                </button>
+                                                <button class="payment-btn btn btn-secondary" onclick="selectPayment('kpay')">
+                                                    <i class="fa fa-credit-card"></i> Kpay
+                                                </button>
+                                                <button class="payment-btn btn btn-secondary" onclick="selectPayment('kbz')">
+                                                    <i class="fa fa-university"></i> KBZ
+                                                </button>
+                                                <button class="payment-btn btn btn-secondary" onclick="selectPayment('wave')">
+                                                    <i class="fa fa-mobile"></i> Wave
+                                                </button>
+                                                <button class="payment-btn btn btn-secondary" onclick="selectPayment('alipay')">
+                                                    <i class="fa fa-credit-card-alt"></i> 支付宝
+                                                </button>
+                                                <button class="payment-btn btn btn-secondary" onclick="selectPayment('wechat')">
+                                                    <i class="fa fa-wechat"></i> 微信
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 结账按钮 -->
+                                        <button class="w-full bg-primary text-white py-3 rounded-md hover:bg-primary/90 transition-colors text-lg font-medium" onclick="checkout()">
+                                            <i class="fa fa-check-circle"></i> 确认结账
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    <!-- 商品管理视图 -->
+        <div id="productsView" class="view-content hidden">
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">商品管理</h2>
+                    <div class="flex space-x-2">
+                        <button class="btn btn-secondary" onclick="downloadImportTemplate()">
+                            <i class="fa fa-download"></i> 下载模板
+                        </button>
+                        <button class="btn btn-info" onclick="exportProducts()">
+                            <i class="fa fa-upload"></i> 导出商品
+                        </button>
+                        <button class="btn btn-warning" onclick="openImportModal()">
+                            <i class="fa fa-cloud-upload"></i> 导入商品
+                        </button>
+                        <button class="btn btn-primary" onclick="openModal('addProductModal')">
+                            <i class="fa fa-plus"></i> 添加商品
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 搜索框 -->
+                <div class="mb-6">
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="productManageSearch" placeholder="搜索商品名称、条码或SKU..." 
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <button class="btn btn-primary px-4 py-2" onclick="searchProductsManage()">
+                            <i class="fa fa-search"></i> 搜索
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <!-- 更新后的表格表头 -->
+                    <table class="min-w-full divide-y divide-gray-200" id="productsTable">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">图标</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">商品名称</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">条码</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">成本价 (Ks)</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">售价 (Ks)</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">毛利率</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">库存</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">分类</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- 商品数据会通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 支付方式设置 -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">支付方式设置</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" id="paymentMethodsTable">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">支付方式</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- 支付方式数据会动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn btn-primary mt-4" onclick="savePaymentMethods()">
+                    <i class="fa fa-save"></i> 保存支付方式
+                </button>
+            </div>
+        </div>
+
+                    <!-- 会员管理视图 -->
+        <div id="membersView" class="view-content hidden">
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">会员管理</h2>
+                    <button class="btn btn-primary" onclick="openModal('addMemberModal')">
+                        <i class="fa fa-plus"></i> 添加会员
+                    </button>
+                </div>
+                
+                <!-- 搜索框 -->
+                <div class="mb-6">
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="memberSearch" placeholder="搜索会员姓名或手机号..." 
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <button class="btn btn-primary px-4 py-2" onclick="searchMembers()">
+                            <i class="fa fa-search"></i> 查询
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" id="membersTable">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">姓名</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">手机号</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">会员等级</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">折扣</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">联系方式</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">累计消费 (Ks)</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">注册日期</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最近消费</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- 会员数据会通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 会员等级设置保持不变 -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">会员等级设置</h2>
+                    <button class="btn btn-primary" onclick="openModal('addMemberLevelModal')">
+                        <i class="fa fa-plus"></i> 添加会员等级
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" id="memberLevelTable">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">等级名称</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">折扣</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">升级条件</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- 会员等级数据会动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+            
+
+                    <!-- 订单管理视图 -->
+        <div id="ordersView" class="view-content hidden">
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">订单管理</h2>
+                </div>
+                
+                <!-- 修复筛选区域，添加查询按钮 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-gray-700 mb-2" for="orderStatusFilter">订单状态</label>
+                        <select id="orderStatusFilter" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" onchange="filterOrders()">
+                            <option value="all">全部订单</option>
+                            <option value="success">已完成</option>
+                            <option value="pending">待支付</option>
+                            <option value="canceled">已取消</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2" for="orderDateFilter">日期筛选</label>
+                        <div class="flex space-x-2">
+                            <input type="date" id="orderDateFilter" class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            <button class="btn btn-primary px-4 py-2" onclick="filterOrders()">
+                                <i class="fa fa-search"></i> 查询
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2" for="orderSearch">搜索订单</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="orderSearch" placeholder="搜索订单号、客户名..." 
+                                class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            <button class="btn btn-primary px-4 py-2" onclick="searchOrders()">
+                                <i class="fa fa-search"></i> 搜索
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" id="ordersTable">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">订单编号</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">客户名称</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">金额 (Ks)</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">支付方式</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- 订单数据会通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+                        <!-- 数据报表视图 -->
+                        <div id="reportView" class="view-content hidden">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <!-- 左侧：销售趋势 -->
+                                <div class="lg:col-span-2">
+                                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                                        <div class="flex justify-between items-center mb-6">
+                                            <h2 class="text-xl font-bold text-gray-800">销售趋势</h2>
+                                            <select id="reportType" class="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" onchange="loadReport()">
+                                                <option value="daily">今日</option>
+                                                <option value="weekly">本周</option>
+                                                <option value="monthly">本月</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div id="salesTrend">
+                                            <!-- 销售趋势图会通过JavaScript动态加载 -->
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 员工销售排行 -->
+                                    <div class="bg-white rounded-lg shadow-sm p-6">
+                                        <h2 class="text-xl font-bold text-gray-800 mb-6">员工销售排行</h2>
+                                        <div id="staffSalesRanking">
+                                            <!-- 员工销售排行会通过JavaScript动态加载 -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 右侧：商品和会员排行 -->
+                                <div>
+                                    <!-- 商品销量排行 -->
+                                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                                        <h2 class="text-xl font-bold text-gray-800 mb-6">商品销量排行</h2>
+                                        <div id="productRanking">
+                                            <!-- 商品销量排行会通过JavaScript动态加载 -->
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 会员消费排行 -->
+                                    <div class="bg-white rounded-lg shadow-sm p-6">
+                                        <h2 class="text-xl font-bold text-gray-800 mb-6">会员消费排行</h2>
+                                        <div id="memberRanking">
+                                            <!-- 会员消费排行会通过JavaScript动态加载 -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 员工管理视图 -->
+                        <div id="staffView" class="view-content hidden">
+                            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h2 class="text-xl font-bold text-gray-800">员工管理</h2>
+                                    <button class="btn btn-primary" onclick="openModal('addStaffModal')">
+                                        <i class="fa fa-plus"></i> 添加员工
+                                    </button>
+                                </div>
+                                
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200" id="staffTable">
+                                        <thead>
+                                            <tr>
+                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">姓名</th>
+                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户名</th>
+                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">角色</th>
+                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">手机号</th>
+                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">入职时间</th>
+                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <!-- 员工数据会通过JavaScript动态加载 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 系统设置视图 -->
+        <div id="settingsView" class="view-content hidden">
+            <div class="settings-grid">
+                <!-- 店铺设置 -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">店铺设置</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 mb-2" for="shopName">店铺名称</label>
+                            <input type="text" id="shopName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2" for="shopPhone">联系电话</label>
+                            <input type="text" id="shopPhone" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2" for="shopWechat">微信联系</label>
+                            <input type="text" id="shopWechat" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2" for="shopTelegram">Telegram联系</label>
+                            <input type="text" id="shopTelegram" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2" for="shopAddress">店铺地址</label>
+                            <textarea id="shopAddress" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" rows="3"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 mb-2" for="openTime">营业开始时间</label>
+                                <input type="time" id="openTime" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-2" for="closeTime">营业结束时间</label>
+                                <input type="time" id="closeTime" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary mt-4" onclick="saveShopSettings()">
+                        <i class="fa fa-save"></i> 保存设置
+                    </button>
+                </div>
+
+                <!-- 数据管理 -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">数据管理</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button class="btn btn-primary" onclick="backupData()">
+                            <i class="fa fa-download"></i> 数据备份
+                        </button>
+                        <div>
+                            <input type="file" id="restoreFile" class="w-full px-4 py-2 border border-gray-300 rounded-md" accept=".json">
+                            <button class="btn btn-secondary mt-2 w-full" onclick="restoreData()">
+                                <i class="fa fa-upload"></i> 数据恢复
+                            </button>
+                        </div>
+                        <button class="btn btn-danger" onclick="resetData()">
+                            <i class="fa fa-trash"></i> 重置数据
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <!-- 模态框部分 -->
+            <!-- 添加/编辑商品模态框 -->
+        <div id="addProductModal" class="modal">
+            <div class="modal-backdrop" onclick="closeModal('addProductModal')"></div>
+            <div class="modal-dialog" onclick="event.stopPropagation()">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="text-lg font-bold" id="productModalTitle">添加商品</h3>
+                        <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('addProductModal')">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <form id="addProductForm" onsubmit="return false;">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="productName">商品名称</label>
+                                    <input type="text" id="productName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                </div>
+                                
+                                <!-- 商品属性：材质、尺寸、颜色 -->
+<div class="grid grid-cols-2 gap-4">
+    <div>
+        <label class="block text-gray-700 mb-2" for="productMaterial">材质</label>
+        <select id="productMaterial" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" onchange="autoGenerateSKU()">
+            <option value="other">其他</option> <!-- 设置为默认 -->
+            <option value="gold">黄金</option>
+            <option value="silver">银</option>
+            <option value="titanium">钛钢</option> <!-- 新增 -->
+            <option value="silver_needle">银针</option> <!-- 新增 -->
+            <option value="diamond">钻石</option>
+            <option value="pearl">珍珠</option>
+            <option value="crystal">水晶</option>
+            <option value="gemstone">宝石</option>
+        </select>
+    </div>
+    
+    <div>
+        <label class="block text-gray-700 mb-2" for="productSize">尺寸</label>
+        <select id="productSize" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" onchange="autoGenerateSKU()">
+            <option value="">默认</option>
+            <option value="small">小号</option>
+            <option value="medium">中号</option>
+            <option value="large">大号</option>
+        </select>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4">
+    <div>
+        <label class="block text-gray-700 mb-2" for="productColor">颜色</label>
+        <select id="productColor" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" onchange="autoGenerateSKU()">
+            <option value="">默认</option>
+            <option value="silver">银色</option> <!-- 新增 -->
+            <option value="gold">金色</option> <!-- 新增 -->
+            <option value="red">红色</option>
+            <option value="blue">蓝色</option>
+            <option value="green">绿色</option>
+            <option value="white">白色</option>
+            <option value="black">黑色</option>
+            <option value="pink">粉色</option>
+            <option value="purple">紫色</option>
+        </select>
+    </div>
+    
+    <div>
+        <label class="block text-gray-700 mb-2" for="productSku">SKU编码</label>
+        <div class="flex space-x-2">
+            <input type="text" id="productSku" class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required readonly>
+            <button type="button" class="btn btn-secondary" onclick="autoGenerateSKU()">
+                <i class="fa fa-refresh"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div>
+    <label class="block text-gray-700 mb-2" for="productBarcode">商品条码</label>
+    <input type="text" id="productBarcode" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+</div>
+                                
+                                <!-- 新增成本价和售价字段 -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="productCostPrice">成本价 (Ks)</label>
+                                        <input type="number" id="productCostPrice" min="0" step="100" 
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" 
+                                            oninput="calculateProfitRate()" required>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="productPrice">售价 (Ks)</label>
+                                        <input type="number" id="productPrice" min="0" step="100" 
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" 
+                                            oninput="calculateProfitRate()" required>
+                                    </div>
+                                </div>
+                                
+                                <!-- 毛利率显示 -->
+                                <div>
+                                    <label class="block text-gray-700 mb-2">毛利率</label>
+                                    <div id="profitRateDisplay" class="text-gray-500 text-sm">
+                                        请输入成本和售价
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="productStock">库存数量</label>
+                                    <input type="number" id="productStock" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="productCategory">商品分类</label>
+                                    <select id="productCategory" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                        <option value="necklace">项链</option>
+                                        <option value="earrings">耳环</option>
+                                        <option value="bracelet">手链</option>
+                                        <option value="anklet">脚链</option>
+                                        <option value="ring">戒指</option>
+                                        <option value="hairpin">发饰</option>
+                                        <option value="brooch">胸针</option>
+                                        <option value="set">套装</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="productImage">商品图片</label>
+                                    <input type="file" id="productImage" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <div class="mt-2 text-sm text-gray-500">支持JPG、PNG格式，建议尺寸200x200</div>
+                                    <div id="productImagePreview" class="mt-2 hidden">
+                                        <img id="previewImg" src="" alt="商品预览图" class="max-w-full max-h-40">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="productStatus">状态</label>
+                                    <select id="productStatus" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                        <option value="active">上架</option>
+                                        <option value="inactive">下架</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeModal('addProductModal')">取消</button>
+                        <button class="btn btn-primary" onclick="saveProduct()">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        // 自动生成SKU编码的函数
+        // 在 autoGenerateSKU 函数中更新材质和颜色代码映射
+function autoGenerateSKU() {
+    const material = document.getElementById('productMaterial').value;
+    const size = document.getElementById('productSize').value;
+    const color = document.getElementById('productColor').value;
+    
+    let sku = '';
+    
+    // 材质代码 - 更新后的映射
+    const materialCodes = {
+        'gold': 'G',
+        'silver': 'S', 
+        'titanium': 'T', // 新增钛钢
+        'silver_needle': 'SN', // 新增银针
+        'diamond': 'D',
+        'pearl': 'P',
+        'crystal': 'C',
+        'gemstone': 'GS',
+        'other': 'O' // 设置为默认
+    };
+    
+    // 尺寸代码
+    const sizeCodes = {
+        'small': 'S',
+        'medium': 'M',
+        'large': 'L',
+        '': 'STD'
+    };
+    
+    // 颜色代码 - 更新后的映射
+    const colorCodes = {
+        'silver': 'SIL', // 新增银色
+        'gold': 'GLD', // 新增金色
+        'red': 'R',
+        'blue': 'B',
+        'green': 'G',
+        'white': 'W',
+        'black': 'BL',
+        'pink': 'PK',
+        'purple': 'PP',
+        '': 'DEF'
+    };
+    
+    sku = materialCodes[material] + '-' + 
+        sizeCodes[size] + '-' + 
+        colorCodes[color] + '-' +
+        Date.now().toString().slice(-4);
+    
+    document.getElementById('productSku').value = sku;
+}
+
+        // 页面加载时自动生成SKU
+        document.addEventListener('DOMContentLoaded', function() {
+            autoGenerateSKU();
+        });
+
+        // 计算毛利率函数
+        function calculateProfitRate() {
+            const costPrice = parseFloat(document.getElementById('productCostPrice').value) || 0;
+            const sellingPrice = parseFloat(document.getElementById('productPrice').value) || 0;
+            
+            if (costPrice > 0 && sellingPrice > 0) {
+                const profit = sellingPrice - costPrice;
+                const profitRate = (profit / sellingPrice) * 100;
+                document.getElementById('profitRateDisplay').innerHTML = 
+                    `<span class="font-semibold ${profitRate >= 0 ? 'text-green-600' : 'text-red-600'}">${profitRate.toFixed(2)}%</span> (利润: ${profit.toLocaleString()} Ks)`;
+            } else {
+                document.getElementById('profitRateDisplay').innerHTML = '请输入成本和售价';
+            }
+        }
+        </script>
+
+            <!-- 添加/编辑会员模态框 -->
+        <div id="addMemberModal" class="modal">
+            <div class="modal-backdrop" onclick="closeModal('addMemberModal')"></div>
+            <div class="modal-dialog" style="max-width: 600px;" onclick="event.stopPropagation()">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="text-lg font-bold" id="memberModalTitle">添加会员</h3>
+                        <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('addMemberModal')">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <form id="addMemberForm" onsubmit="return false;">
+                            <div class="space-y-4">
+                                <!-- 基础信息 -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="memberName">会员姓名</label>
+                                        <input type="text" id="memberName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="memberPhoneInput">手机号码</label>
+                                        <input type="tel" id="memberPhoneInput" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                    </div>
+                                </div>
+
+                                <!-- 会员等级 -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="memberLevel">会员等级</label>
+                                        <select id="memberLevel" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                            <option value="normal">普通会员</option>
+                                            <option value="silver">白银会员</option>
+                                            <option value="gold">黄金会员</option>
+                                            <option value="diamond">钻石会员</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="memberTotalSpent">累计消费 (Ks)</label>
+                                        <input type="number" id="memberTotalSpent" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="0">
+                                    </div>
+                                </div>
+
+                                <!-- 联系方式 -->
+                                <div class="border-t border-gray-200 pt-4">
+                                    <h4 class="text-lg font-semibold text-gray-800 mb-3">联系方式</h4>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-gray-700 mb-2" for="memberWechat">微信</label>
+                                            <input type="text" id="memberWechat" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="微信号">
+                                        </div>
+                                        
+                                        <div>
+                                            <label class="block text-gray-700 mb-2" for="memberTelegram">Telegram</label>
+                                            <input type="text" id="memberTelegram" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="@username">
+                                        </div>
+                                        
+                                        <div class="col-span-2">
+                                            <label class="block text-gray-700 mb-2" for="memberEmail">邮箱</label>
+                                            <input type="email" id="memberEmail" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="email@example.com">
+                                        </div>
+                                        
+                                        <div class="col-span-2">
+                                            <label class="block text-gray-700 mb-2" for="memberAddress">地址</label>
+                                            <textarea id="memberAddress" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" rows="2" placeholder="详细地址"></textarea>
+                                        </div>
+                                        
+                                        <div class="col-span-2">
+                                            <label class="block text-gray-700 mb-2" for="memberNote">备注</label>
+                                            <textarea id="memberNote" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" rows="2" placeholder="会员备注信息"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeModal('addMemberModal')">取消</button>
+                        <button class="btn btn-primary" onclick="saveMember()">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <!-- 订单详情模态框 -->
+            <div id="orderDetailModal" class="modal">
+                <div class="modal-backdrop" onclick="closeModal('orderDetailModal')"></div>
+                <div class="modal-dialog" onclick="event.stopPropagation()">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="text-lg font-bold" id="orderDetailTitle">订单详情</h3>
+                            <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('orderDetailModal')">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="modal-body" id="orderDetailContent">
+                            <!-- 订单详情会通过JavaScript动态加载 -->
+                            <div class="text-center py-8 text-gray-500">
+                                <i class="fa fa-spinner fa-spin fa-2x mb-4"></i>
+                                <p>加载中...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button id="cancelOrderBtn" class="btn btn-danger hidden" onclick="cancelOrder()">取消订单</button>
+                            <button class="btn btn-secondary" onclick="closeModal('orderDetailModal')">关闭</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 添加/编辑员工模态框 -->
+        <div id="addStaffModal" class="modal">
+            <div class="modal-backdrop" onclick="closeModal('addStaffModal')"></div>
+            <div class="modal-dialog" style="max-width: 800px; max-height: 90vh;" onclick="event.stopPropagation()">
+                <div class="modal-content" style="max-height: 90vh; display: flex; flex-direction: column;">
+                    <div class="modal-header">
+                        <h3 class="text-lg font-bold" id="staffModalTitle">添加员工</h3>
+                        <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('addStaffModal')">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body" style="overflow-y: auto; flex: 1;">
+                        <form id="addStaffForm" onsubmit="return false;">
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="staffName">员工姓名</label>
+                                    <input type="text" id="staffName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="staffUsername">用户名</label>
+                                    <input type="text" id="staffUsername" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="staffPassword">密码</label>
+                                    <input type="password" id="staffPassword" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <div class="mt-1 text-sm text-gray-500">编辑时留空则不修改密码</div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="staffRole">角色</label>
+                                    <select id="staffRole" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required onchange="onRoleChange()">
+                                        <option value="admin">管理员（店长）</option>
+                                        <option value="manager">经理</option>
+                                        <option value="staff">普通员工</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-span-2">
+                                    <label class="block text-gray-700 mb-2" for="staffPhone">手机号码</label>
+                                    <input type="tel" id="staffPhone" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                </div>
+                            </div>
+
+                            <!-- 权限设置区域 -->
+                            <div class="border-t border-gray-200 pt-4">
+                                <h4 class="text-lg font-bold text-gray-800 mb-4">权限设置</h4>
+                                
+                                <!-- 基础权限 -->
+                                <div id="basicPermissions" class="permission-section mb-6">
+                                    <h5 class="font-semibold text-gray-700 mb-3">基础权限</h5>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">查看仪表盘</div>
+                                                <div class="text-sm text-gray-500">允许查看系统概览和数据统计</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="viewDashboardPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">查看订单</div>
+                                                <div class="text-sm text-gray-500">允许查看订单管理页面</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="viewOrdersPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">查看数据报表</div>
+                                                <div class="text-sm text-gray-500">允许查看销售报表和统计</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="viewReportsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">查看系统设置</div>
+                                                <div class="text-sm text-gray-500">允许查看系统设置页面</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="viewSettingsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 商品管理权限 -->
+                                <div id="productPermissions" class="permission-section mb-6">
+                                    <h5 class="font-semibold text-gray-700 mb-3">商品管理权限</h5>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">查看商品</div>
+                                                <div class="text-sm text-gray-500">允许查看商品管理页面</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="viewProductsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">查看成本价</div>
+                                                <div class="text-sm text-gray-500">允许查看商品成本价格</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="viewCostPricePermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">查看毛利率</div>
+                                                <div class="text-sm text-gray-500">允许查看商品毛利率</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="viewProfitMarginPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">添加商品</div>
+                                                <div class="text-sm text-gray-500">允许添加新商品</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="addProductsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">编辑商品</div>
+                                                <div class="text-sm text-gray-500">允许编辑商品信息</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="editProductsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">删除商品</div>
+                                                <div class="text-sm text-gray-500">允许删除商品</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="deleteProductsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">上架/下架商品</div>
+                                                <div class="text-sm text-gray-500">允许更改商品状态</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="toggleProductStatusPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">导入商品</div>
+                                                <div class="text-sm text-gray-500">允许批量导入商品</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="importProductsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">导出商品</div>
+                                                <div class="text-sm text-gray-500">允许导出商品数据</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="exportProductsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 会员管理权限 -->
+                                <div id="memberPermissions" class="permission-section mb-6">
+                                    <h5 class="font-semibold text-gray-700 mb-3">会员管理权限</h5>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">查看会员</div>
+                                                <div class="text-sm text-gray-500">允许查看会员管理页面</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="viewMembersPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">添加会员</div>
+                                                <div class="text-sm text-gray-500">允许添加新会员</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="addMembersPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">编辑会员</div>
+                                                <div class="text-sm text-gray-500">允许编辑会员信息</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="editMembersPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">查看会员详情</div>
+                                                <div class="text-sm text-gray-500">允许查看会员详细信息</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="viewMemberDetailsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">管理会员等级</div>
+                                                <div class="text-sm text-gray-500">允许设置会员等级</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="manageMemberLevelsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 订单管理权限 -->
+                                <div id="orderPermissions" class="permission-section mb-6">
+                                    <h5 class="font-semibold text-gray-700 mb-3">订单管理权限</h5>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">查看订单详情</div>
+                                                <div class="text-sm text-gray-500">允许查看订单详细信息</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="viewOrderDetailsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">取消订单</div>
+                                                <div class="text-sm text-gray-500">允许取消待支付订单</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="cancelOrdersPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">删除订单</div>
+                                                <div class="text-sm text-gray-500">允许删除订单记录</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="deleteOrdersPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">打印小票</div>
+                                                <div class="text-sm text-gray-500">允许打印订单小票</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="printReceiptsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 收银权限 -->
+                                <div id="posPermissions" class="permission-section mb-6">
+                                    <h5 class="font-semibold text-gray-700 mb-3">收银权限</h5>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">结账操作</div>
+                                                <div class="text-sm text-gray-500">允许进行结账操作</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="checkoutPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">清空购物车</div>
+                                                <div class="text-sm text-gray-500">允许清空购物车</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="clearCartPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">应用折扣</div>
+                                                <div class="text-sm text-gray-500">允许应用会员和手动折扣</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="applyDiscountsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">选择支付方式</div>
+                                                <div class="text-sm text-gray-500">允许选择支付方式</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="selectPaymentPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                
+
+                                <!-- 系统设置权限 -->
+                                <div id="systemSettingsPermissions" class="permission-section">
+                                    <h5 class="font-semibold text-gray-700 mb-3">系统设置权限</h5>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">管理店铺设置</div>
+                                                <div class="text-sm text-gray-500">允许修改店铺基本信息</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="manageShopSettingsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">管理支付方式</div>
+                                                <div class="text-sm text-gray-500">允许设置支付方式</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="managePaymentMethodsPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                            <div>
+                                                <div class="font-medium">管理员工</div>
+                                                <div class="text-sm text-gray-500">允许管理员工账号</div>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="manageStaffPermission">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeModal('addStaffModal')">取消</button>
+                        <button class="btn btn-primary" onclick="saveStaff()">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <!-- 编辑会员等级模态框 -->
+            <div id="editMemberLevelModal" class="modal">
+                <div class="modal-backdrop" onclick="closeModal('editMemberLevelModal')"></div>
+                <div class="modal-dialog" onclick="event.stopPropagation()">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="text-lg font-bold">编辑会员等级</h3>
+                            <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('editMemberLevelModal')">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <form id="editMemberLevelForm" onsubmit="return false;">
+                                <input type="hidden" id="editLevelType">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="editLevelName">等级名称</label>
+                                        <input type="text" id="editLevelName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="editLevelDiscount">折扣率 (0.1-1.0)</label>
+                                        <input type="number" id="editLevelDiscount" min="0.1" max="1.0" step="0.1" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                        <div class="mt-1 text-sm text-gray-500">例如：0.9 表示9折</div>
+                                    </div>
+                                    
+                                    <div id="levelConditionContainer">
+                                        <label class="block text-gray-700 mb-2" for="editLevelCondition">升级条件 (累计消费 Ks)</label>
+                                        <input type="number" id="editLevelCondition" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button class="btn btn-danger" id="deleteLevelBtn" onclick="deleteMemberLevel()">删除</button>
+                            <button class="btn btn-secondary" onclick="closeModal('editMemberLevelModal')">取消</button>
+                            <button class="btn btn-primary" onclick="saveMemberLevel()">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 添加会员等级模态框 -->
+            <div id="addMemberLevelModal" class="modal">
+                <div class="modal-backdrop" onclick="closeModal('addMemberLevelModal')"></div>
+                <div class="modal-dialog" onclick="event.stopPropagation()">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="text-lg font-bold">添加会员等级</h3>
+                            <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('addMemberLevelModal')">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <form id="addMemberLevelForm" onsubmit="return false;">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="addLevelKey">等级标识 (英文)</label>
+                                        <input type="text" id="addLevelKey" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                        <div class="mt-1 text-sm text-gray-500">只能包含小写字母和下划线，如：vip</div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="addLevelName">等级名称</label>
+                                        <input type="text" id="addLevelName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="addLevelDiscount">折扣率 (0.1-1.0)</label>
+                                        <input type="number" id="addLevelDiscount" min="0.1" max="1.0" step="0.1" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                        <div class="mt-1 text-sm text-gray-500">例如：0.9 表示9折</div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="addLevelCondition">升级条件 (累计消费 Ks)</label>
+                                        <input type="number" id="addLevelCondition" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" onclick="closeModal('addMemberLevelModal')">取消</button>
+                            <button class="btn btn-primary" onclick="addNewMemberLevel()">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 编辑销售记录模态框 -->
+            <div id="editSaleRecordModal" class="modal">
+                <div class="modal-backdrop" onclick="closeModal('editSaleRecordModal')"></div>
+                <div class="modal-dialog" onclick="event.stopPropagation()">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="text-lg font-bold">编辑销售记录</h3>
+                            <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('editSaleRecordModal')">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <form id="editSaleRecordForm" onsubmit="return false;">
+                                <input type="hidden" id="editRecordOrderId">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">订单编号</label>
+                                        <div id="editRecordOrderNumber" class="w-full px-4 py-2 bg-gray-100 rounded-md"></div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">订单金额</label>
+                                        <div id="editRecordOrderAmount" class="w-full px-4 py-2 bg-gray-100 rounded-md"></div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">订单时间</label>
+                                        <div id="editRecordOrderTime" class="w-full px-4 py-2 bg-gray-100 rounded-md"></div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="editRecordStaffId">销售人员</label>
+                                        <select id="editRecordStaffId" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                            <!-- 员工选项会通过JavaScript动态加载 -->
+                                        </select>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" onclick="closeModal('editSaleRecordModal')">取消</button>
+                            <button class="btn btn-primary" onclick="saveSaleRecordEdit()">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 会员选择模态框（用于收银台） -->
+            <div id="memberSelectModal" class="modal">
+                <div class="modal-backdrop" onclick="closeModal('memberSelectModal')"></div>
+                <div class="modal-dialog" onclick="event.stopPropagation()">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="text-lg font-bold">选择会员</h3>
+                            <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('memberSelectModal')">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <div class="mb-4">
+                                <input type="text" id="memberSearchCheckout" placeholder="搜索会员姓名或手机号..." 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                                    oninput="searchMemberForCheckout()">
+                            </div>
+                            
+                            <div id="memberSearchResults" class="max-h-64 overflow-y-auto space-y-2">
+                                <!-- 会员搜索结果会动态加载 -->
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" onclick="closeModal('memberSelectModal')">取消</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <!-- 结账确认模态框 -->
+        <div id="checkoutModal" class="modal">
+            <div class="modal-backdrop" onclick="closeModal('checkoutModal')"></div>
+            <div class="modal-dialog" onclick="event.stopPropagation()">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="text-lg font-bold">确认结账</h3>
+                        <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('checkoutModal')">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span>客户:</span>
+                                <span id="checkoutMemberInfo">散客</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>订单金额:</span>
+                                <span id="checkoutTotalAmount">0 Ks</span>
+                            </div>
+                            <div class="flex justify-between text-success">
+                                <span>会员折扣:</span>
+                                <span id="checkoutDiscountAmount">-0 Ks</span>
+                            </div>
+                            <div class="flex justify-between border-t border-gray-200 pt-2 font-bold">
+                                <span>实收金额:</span>
+                                <span id="checkoutFinalAmount" class="text-primary">0 Ks</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeModal('checkoutModal')">取消</button>
+                        <button class="btn btn-info" onclick="previewReceipt()">
+                            <i class="fa fa-print"></i> 预览小票
+                        </button>
+                        <button class="btn btn-primary" onclick="confirmCheckout()">确认结账</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 导入商品模态框 -->
+        <div id="importProductsModal" class="modal">
+            <div class="modal-backdrop" onclick="closeModal('importProductsModal')"></div>
+            <div class="modal-dialog" onclick="event.stopPropagation()">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="text-lg font-bold">批量导入商品</h3>
+                        <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('importProductsModal')">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-sm text-gray-600 mb-3">请选择CSV文件进行批量导入：</p>
+                                <input type="file" id="importProductsFile" accept=".csv" class="w-full px-4 py-2 border border-gray-300 rounded-md">
+                            </div>
+                            
+                            <div class="bg-blue-50 border border-blue-200 rounded-md p-3">
+                                <h4 class="font-medium text-blue-800 mb-2">导入说明：</h4>
+                                <ul class="text-sm text-blue-700 space-y-1">
+                                    <li>• 支持CSV格式文件导入</li>
+                                    <li>• 请先下载模板，按照模板格式填写</li>
+                                    <li>• 商品条码不能重复</li>
+                                    <li>• 导入前请确保数据格式正确</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="flex space-x-2">
+                                <button class="btn btn-secondary flex-1" onclick="downloadImportTemplate()">
+                                    <i class="fa fa-download"></i> 下载模板
+                                </button>
+                                <button class="btn btn-primary flex-1" onclick="importProducts()">
+                                    <i class="fa fa-cloud-upload"></i> 开始导入
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeModal('importProductsModal')">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        // 更新模板下载函数，确保使用正确的分隔符
+function downloadImportTemplate() {
+    const template = `商品名称,商品条码,SKU编码,成本价,售价,库存数量,商品分类,状态,材质,尺寸,颜色
+银针银色大C,ER0001,HD0001,7200,11000,1,earrings,active,银针,中号,银色
+钛钢金色项链,TITAN001,T-NCK-001,30000,50000,8,necklace,active,钛钢,中号,金色
+黄金项链,GOLD001,G-NCK-001,50000,80000,10,necklace,active,黄金,中号,金色
+钻石戒指,DIAMOND001,D-RNG-001,150000,250000,5,ring,active,钻石,默认,白色`;
+
+    // 使用UTF-8 BOM确保中文兼容性
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + template], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    link.href = URL.createObjectURL(blob);
+    link.download = '商品导入模板.csv';
+    link.click();
+}
+
+        function importProducts() {
+    const fileInput = document.getElementById('importProductsFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('请选择要导入的CSV文件');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const csvData = e.target.result;
+            console.log('原始CSV数据:', csvData); // 调试
+            
+            const result = parseCSVData(csvData);
+            
+            if (result.success) {
+                saveImportedProducts(result.products);
+                alert(`导入成功！共导入 ${result.products.length} 条商品数据`);
+                closeModal('importProductsModal');
+                loadProducts();
+            } else {
+                alert('导入失败：' + result.message);
+            }
+        } catch (error) {
+            console.error('导入错误:', error);
+            alert('导入失败：' + error.message);
+        }
+    };
+    
+    reader.readAsText(file, 'UTF-8');
+}
+
+    // 灵活的列名匹配
+    const columnMapping = {
+        '商品名称': ['商品名称', '名称', 'product name', 'name'],
+        '商品条码': ['商品条码', '条码', 'barcode', 'sku'],
+        'SKU编码': ['SKU编码', 'SKU', 'sku code'],
+        '成本价': ['成本价', '成本', 'cost price', 'cost'],
+        '售价': ['售价', '价格', 'selling price', 'price'],
+        '库存数量': ['库存数量', '库存', 'stock quantity', 'stock'],
+        '商品分类': ['商品分类', '分类', 'category'],
+        '状态': ['状态', 'status']
+    };
+
+    // 构建实际的列映射
+    const actualColumns = {};
+    Object.keys(columnMapping).forEach(requiredCol => {
+        const foundHeader = headers.find(header => 
+            columnMapping[requiredCol].some(alias => 
+                header.toLowerCase().includes(alias.toLowerCase())
+            )
+        );
+        if (foundHeader) {
+            actualColumns[requiredCol] = headers.indexOf(foundHeader);
+        }
+    });
+
+    // 验证必要的列
+    const requiredColumns = ['商品名称', '商品条码', '成本价', '售价', '库存数量', '商品分类', '状态'];
+    const missingColumns = requiredColumns.filter(col => actualColumns[col] === undefined);
+    
+    if (missingColumns.length > 0) {
+        return { 
+            success: false, 
+            message: `CSV文件缺少必要的列：${missingColumns.join(', ')}。检测到的表头：${headers.join(', ')}` 
+        };
+    }
+
+    // 解析数据行
+    const products = [];
+    const barcodeSet = new Set();
+
+    for (let i = 1; i < lines.length; i++) {
+        let values = [];
+        const line = lines[i];
+        
+        // 使用与表头相同的分隔符
+        if (line.includes(',')) {
+            values = line.split(',').map(value => value.trim().replace(/^"|"$/g, ''));
+        } else if (line.includes('\t')) {
+            values = line.split('\t').map(value => value.trim().replace(/^"|"$/g, ''));
+        } else if (line.includes('，')) {
+            values = line.split('，').map(value => value.trim().replace(/^"|"$/g, ''));
+        } else {
+            values = [line];
+        }
+
+        if (values.length < headers.length) {
+            console.warn(`第 ${i + 1} 行数据不完整，跳过`);
+            continue;
+        }
+
+        // 提取数据
+        const product = {};
+        Object.keys(actualColumns).forEach(col => {
+            const index = actualColumns[col];
+            product[col] = values[index] || '';
+        });
+
+        // 验证必要字段
+        if (!product['商品名称']) {
+            return { success: false, message: `第 ${i + 1} 行商品名称不能为空` };
+        }
+
+        if (!product['商品条码']) {
+            return { success: false, message: `第 ${i + 1} 行商品条码不能为空` };
+        }
+
+        // 检查条码重复
+        if (barcodeSet.has(product['商品条码'])) {
+            return { success: false, message: `商品条码 ${product['商品条码']} 重复` };
+        }
+        barcodeSet.add(product['商品条码']);
+
+        // 转换数字字段
+        const costPrice = parseInt(product['成本价'].replace(/[^0-9]/g, '')) || 0;
+        const sellingPrice = parseInt(product['售价'].replace(/[^0-9]/g, '')) || 0;
+        const stock = parseInt(product['库存数量']) || 0;
+
+        // 处理状态字段
+        let status = 'active';
+        if (product['状态'] && (product['状态'].includes('下架') || product['状态'].toLowerCase().includes('inactive'))) {
+            status = 'inactive';
+        }
+
+        // 添加到商品列表
+        products.push({
+            id: Date.now() + i,
+            name: product['商品名称'],
+            barcode: product['商品条码'],
+            sku: product['SKU编码'] || `SKU_${Date.now()}_${i}`,
+            costPrice: costPrice,
+            price: sellingPrice,
+            stock: stock,
+            category: product['商品分类'] || 'other',
+            status: status,
+            material: product['材质'] || '',
+            size: product['尺寸'] || '',
+            color: product['颜色'] || '',
+            image: '',
+            createdAt: new Date().toISOString()
+        });
+    }
+
+    return { success: true, products: products };
+
+        // 保存导入的商品数据
+        function saveImportedProducts(products) {
+            // 获取现有的商品数据
+            let existingProducts = JSON.parse(localStorage.getItem('products') || '[]');
+            
+            // 合并数据（避免重复条码）
+            products.forEach(newProduct => {
+                const existingIndex = existingProducts.findIndex(p => p.barcode === newProduct.barcode);
+                if (existingIndex !== -1) {
+                    // 更新现有商品
+                    existingProducts[existingIndex] = newProduct;
+                } else {
+                    // 添加新商品
+                    existingProducts.push(newProduct);
+                }
+            });
+            
+            // 保存到本地存储
+            localStorage.setItem('products', JSON.stringify(existingProducts));
+        }
+        </script>
+
+        <!-- 修改个人信息模态框 -->
+        <div id="editProfileModal" class="modal">
+            <div class="modal-backdrop" onclick="closeModal('editProfileModal')"></div>
+            <div class="modal-dialog" onclick="event.stopPropagation()">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="text-lg font-bold">修改个人信息</h3>
+                        <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('editProfileModal')">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <form id="editProfileForm" onsubmit="return false;">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="editUserName">姓名</label>
+                                    <input type="text" id="editUserName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="editUserUsername">用户名</label>
+                                    <input type="text" id="editUserUsername" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="editUserPhone">手机号码</label>
+                                    <input type="tel" id="editUserPhone" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeModal('editProfileModal')">取消</button>
+                        <button class="btn btn-primary" onclick="saveProfile()">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 修改密码模态框 -->
+        <div id="changePasswordModal" class="modal">
+            <div class="modal-backdrop" onclick="closeModal('changePasswordModal')"></div>
+            <div class="modal-dialog" onclick="event.stopPropagation()">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="text-lg font-bold">修改密码</h3>
+                        <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('changePasswordModal')">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <form id="changePasswordForm" onsubmit="return false;">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="currentPassword">当前密码</label>
+                                    <input type="password" id="currentPassword" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="newPassword">新密码</label>
+                                    <input type="password" id="newPassword" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                    <div class="mt-1 text-sm text-gray-500">密码长度至少6位</div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="confirmPassword">确认新密码</label>
+                                    <input type="password" id="confirmPassword" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeModal('changePasswordModal')">取消</button>
+                        <button class="btn btn-primary" onclick="savePassword()">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 创建活动模态框 -->
+        <div id="addActivityModal" class="modal">
+            <div class="modal-dialog" style="max-width: 700px;">
+                <div class="modal-content" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3 class="text-lg font-bold" id="activityModalTitle">创建活动</h3>
+                        <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('addActivityModal')">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <form id="addActivityForm" onsubmit="return false;">
+                            <div class="space-y-4">
+                                <!-- 基础信息 -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="activityName">活动名称</label>
+                                        <input type="text" id="activityName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required placeholder="例如：圣诞促销活动">
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="activityTarget">目标人群</label>
+                                        <select id="activityTarget" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                            <option value="all">所有客户</option>
+                                            <option value="member">仅会员</option>
+                                            <option value="new_member">新会员</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- 活动时间 -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="activityStartDate">开始日期</label>
+                                        <input type="date" id="activityStartDate" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-700 mb-2" for="activityEndDate">结束日期</label>
+                                        <input type="date" id="activityEndDate" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                    </div>
+                                </div>
+
+                                <!-- 活动条件 -->
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="activityMinAmount">最低消费金额 (Ks)</label>
+                                    <input type="number" id="activityMinAmount" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" min="0" placeholder="0表示无最低消费">
+                                </div>
+
+                                <!-- 奖励类型选择 -->
+                                <div>
+                                    <label class="block text-gray-700 mb-2">奖励类型</label>
+                                    <div class="grid grid-cols-4 gap-2">
+                                        <button type="button" class="reward-type-btn btn btn-outline active" data-type="product" onclick="selectRewardType('product')">
+                                            <i class="fa fa-gift mr-2"></i>商品赠品
+                                        </button>
+                                        <button type="button" class="reward-type-btn btn btn-outline" data-type="cash" onclick="selectRewardType('cash')">
+                                            <i class="fa fa-money mr-2"></i>现金奖励
+                                        </button>
+                                        <button type="button" class="reward-type-btn btn btn-outline" data-type="discount" onclick="selectRewardType('discount')">
+                                            <i class="fa fa-percent mr-2"></i>折扣券
+                                        </button>
+                                        <button type="button" class="reward-type-btn btn btn-outline" data-type="points" onclick="selectRewardType('points')">
+                                            <i class="fa fa-star mr-2"></i>积分奖励
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 奖励设置区域 -->
+                                <div id="rewardSettings" class="reward-section p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                    <!-- 商品赠品奖励 -->
+                                    <div id="productReward" class="reward-option">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-gray-700 mb-2" for="productSearch">搜索商品</label>
+                                                <div class="flex space-x-2">
+                                                    <input type="text" id="productSearch" placeholder="输入商品名称或条码" 
+                                                        class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                                    <button type="button" class="btn btn-secondary" onclick="searchProductForActivity()">
+                                                        <i class="fa fa-search"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-gray-700 mb-2" for="activityProduct">选择商品</label>
+                                                <select id="activityProduct" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                                    <option value="">请先搜索商品</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <label class="block text-gray-700 mb-2" for="productQuantity">赠送数量</label>
+                                            <input type="number" id="productQuantity" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" min="1" value="1">
+                                        </div>
+                                    </div>
+
+                                    <!-- 现金奖励 -->
+                                    <div id="cashReward" class="reward-option hidden">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-gray-700 mb-2" for="cashAmount">金额 (Ks)</label>
+                                                <input type="number" id="cashAmount" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" min="0" placeholder="输入现金金额">
+                                            </div>
+                                            <div>
+                                                <label class="block text-gray-700 mb-2" for="cashWallet">发放方式</label>
+                                                <select id="cashWallet" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                                    <option value="kpay">KPay</option>
+                                                    <option value="kbz">KBZ Pay</option>
+                                                    <option value="wave">Wave Money</option>
+                                                    <option value="balance">现金</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 折扣奖励 -->
+                                    <div id="discountReward" class="reward-option hidden">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-gray-700 mb-2" for="discountType">折扣类型</label>
+                                                <select id="discountType" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" onchange="toggleDiscountType()">
+                                                    <option value="percentage">百分比折扣</option>
+                                                    <option value="fixed">固定金额折扣</option>
+                                                </select>
+                                            </div>
+                                            <div id="percentageDiscountContainer">
+                                                <label class="block text-gray-700 mb-2" for="discountPercentage">折扣比例</label>
+                                                <div class="flex items-center space-x-2">
+                                                    <input type="number" id="discountPercentage" class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" min="1" max="100" value="10">
+                                                    <span class="text-gray-500">%</span>
+                                                </div>
+                                            </div>
+                                            <div id="fixedDiscountContainer" class="hidden">
+                                                <label class="block text-gray-700 mb-2" for="discountFixed">折扣金额 (Ks)</label>
+                                                <input type="number" id="discountFixed" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" min="0" placeholder="输入折扣金额">
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <label class="block text-gray-700 mb-2" for="discountMaxAmount">最高折扣金额 (Ks)</label>
+                                            <input type="number" id="discountMaxAmount" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" min="0" placeholder="0表示无上限">
+                                        </div>
+                                    </div>
+
+                                    <!-- 积分奖励 -->
+                                    <div id="pointsReward" class="reward-option hidden">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-gray-700 mb-2" for="pointsType">积分类型</label>
+                                                <select id="pointsType" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" onchange="togglePointsType()">
+                                                    <option value="fixed">固定积分</option>
+                                                    <option value="multiplier">消费倍数</option>
+                                                </select>
+                                            </div>
+                                            <div id="fixedPointsContainer">
+                                                <label class="block text-gray-700 mb-2" for="pointsAmount">积分数量</label>
+                                                <input type="number" id="pointsAmount" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" min="0" value="100">
+                                            </div>
+                                            <div id="multiplierPointsContainer" class="hidden">
+                                                <label class="block text-gray-700 mb-2" for="pointsMultiplier">积分倍数</label>
+                                                <div class="flex items-center space-x-2">
+                                                    <input type="number" id="pointsMultiplier" class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" min="1" max="10" step="0.1" value="2">
+                                                    <span class="text-gray-500">倍</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 活动描述 -->
+                                <div>
+                                    <label class="block text-gray-700 mb-2" for="activityDescription">活动描述</label>
+                                    <textarea id="activityDescription" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" rows="3" placeholder="详细描述活动内容和规则"></textarea>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="closeModal('addActivityModal')">取消</button>
+                        <button class="btn btn-primary" onclick="saveActivity()">创建活动</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 引入JavaScript文件 -->
+        <script src="js/utils.js"></script>
+        <script src="js/auth.js"></script>
+        <script src="js/pos.js"></script>
+        <script src="js/products.js"></script>
+        <script src="js/members.js"></script>
+        <script src="js/orders.js"></script>
+        <script src="js/staff.js"></script>
+        <script src="js/reports.js"></script>
+        <script src="js/settings.js"></script>
+        <script src="js/activities.js"></script>  <!-- 添加这一行 -->
+        <script src="js/app.js"></script>
+        </body>
+        </html>
